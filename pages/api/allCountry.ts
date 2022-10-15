@@ -32,6 +32,5 @@ export default async function handler(
   res: NextApiResponse<Country[]>,
 ) {
   const countries = await fetch(EntryPoint.all).then((res) => res.json());
-  console.log(countries);
   res.status(200).json(countries);
 }
