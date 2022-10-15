@@ -41,7 +41,11 @@ const Label = ({
 const CountryCard = ({ region, capital, flags, name }: Country) => {
   const commonName = name.common;
   return (
-    <Card>
+    <Card
+      style={{
+        cursor: 'pointer',
+      }}
+    >
       <CardMedia
         component="img"
         height="180"
@@ -79,20 +83,22 @@ const CountryGrid = ({ countries }: { countries: Country[] | null[] }) => {
       spacing={{ xs: 2, md: 4 }}
       columns={{ xs: 3, sm: 6, md: 12 }}
     >
-      {countries.map((country, index) => (
-        <Grid key={index} item xs={3}>
-          {country == null ? (
+      {countries.map((country, index) =>
+        country == null ? (
+          <Grid key={index} item xs={3}>
             <CountrySkeleton key={index} />
-          ) : (
-            <Link
-              href={`/detail/${country.name.common}`}
-              key={country.name.common}
-            >
+          </Grid>
+        ) : (
+          <Link
+            href={`/detail/${country.name.common}`}
+            key={country.name.common}
+          >
+            <Grid key={index} item xs={3}>
               <CountryCard {...country} />
-            </Link>
-          )}
-        </Grid>
-      ))}
+            </Grid>
+          </Link>
+        ),
+      )}
     </Grid>
   );
 };

@@ -17,6 +17,7 @@ import { styled, lighten, darken } from '@mui/system';
 import { groupBy } from 'lodash';
 import { Country } from './api/allCountry';
 import { Skeleton } from '@mui/material';
+import { useRouter } from 'next/router';
 
 const GroupHeader = styled('div')(({ theme }) => ({
   position: 'sticky',
@@ -43,6 +44,8 @@ const isCountry = (country: Country[] | null[]): country is Country[] =>
 const sentinelRegion = { id: '-', label: 'Global' };
 
 const Home = () => {
+  const { query, replace } = useRouter();
+
   const { data: countries = CountryPlaceholder, error } = useSWR<Country[]>(
     '/api/allCountry',
     {
@@ -53,7 +56,16 @@ const Home = () => {
 
   const isLoading = countries === CountryPlaceholder;
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => {
+    if (typeof query.s !== 'string') {
+      return [];
+    }
+    return query.s
+      .split(',')
+      .filter(Boolean)
+      .map((keyword) => ({ name: keyword, region: '' }));
+  });
+  console.log(search);
 
   const regions = useMemo(() => {
     return [sentinelRegion].concat(
@@ -63,7 +75,14 @@ const Home = () => {
       })),
     );
   }, [countries]);
-  const [currentRegion, setCurrentRegion] = useState(regions[0]);
+
+  const [currentRegion, setCurrentRegion] = useState(() => {
+    const region = query.region;
+    if (region) {
+      return { id: region, label: region };
+    }
+    return sentinelRegion;
+  });
 
   const countriesFilteredByRegion = useMemo(() => {
     return isCountry(countries)
@@ -75,15 +94,22 @@ const Home = () => {
 
   const countriesSortByRegion = useMemo(
     () =>
-      countriesFilteredByRegion.sort((a, b) =>
-        a.region.localeCompare(b.region),
-      ),
+      countriesFilteredByRegion
+        .sort((a, b) => a.region.localeCompare(b.region))
+        .map((country) => ({
+          region: country.region,
+          name: country.name.common,
+        })),
     [countriesFilteredByRegion],
   );
 
   const filteredCountries = useMemo(() => {
+    // naive search
+    if (!search.length) {
+      return countriesFilteredByRegion;
+    }
     return countriesFilteredByRegion.filter((country) =>
-      country.name.common.toLowerCase().includes(search),
+      search.map((item) => item.name).includes(country.name.common),
     );
   }, [countriesFilteredByRegion, search]);
 
@@ -104,19 +130,24 @@ const Home = () => {
               <Autocomplete
                 options={countriesSortByRegion}
                 isOptionEqualToValue={(option, value) =>
-                  option.name.common === value.name.common
+                  option.name === value.name
                 }
                 groupBy={(country) => country.region}
-                getOptionLabel={(country) => country.name.common}
+                getOptionLabel={(country) => country.name}
                 renderInput={(params) => (
                   <TextField {...params} label="With Country name" />
                 )}
+                multiple
+                value={search}
                 onChange={(_event, value) => {
-                  if (value) {
-                    setSearch(value.name.common.toLowerCase());
-                  } else {
-                    setSearch('');
-                  }
+                  setSearch(value);
+
+                  const newUrl = new URL(location.href);
+                  newUrl.searchParams.set(
+                    's',
+                    value.map((item) => item.name).join(','),
+                  );
+                  replace(newUrl.toString());
                 }}
                 renderGroup={(params) => (
                   <li>
@@ -134,11 +165,14 @@ const Home = () => {
               <Autocomplete
                 value={currentRegion}
                 onChange={(_event, newValue) => {
-                  if (newValue?.id) {
-                    setCurrentRegion(newValue);
-                  } else {
-                    setCurrentRegion(sentinelRegion);
-                  }
+                  setCurrentRegion(newValue ?? sentinelRegion);
+
+                  const newUrl = new URL(location.href);
+                  newUrl.searchParams.set(
+                    'region',
+                    (newValue?.id as string) ?? '',
+                  );
+                  replace(newUrl.toString());
                 }}
                 disablePortal
                 isOptionEqualToValue={(value, option) => value.id === option.id}
@@ -150,7 +184,9 @@ const Home = () => {
             )}
           </Grid>
         </Grid>
-        <CountryGrid countries={filteredCountries} />
+        <CountryGrid
+          countries={isLoading ? CountryPlaceholder : filteredCountries}
+        />
       </Container>
     </ThemeProvider>
   );
