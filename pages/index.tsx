@@ -1,20 +1,22 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import useSWR from 'swr';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import Container from '@mui/material/Container';
-import Stack from '@mui/material/Stack';
+import Grid from '@mui/material/Grid';
 import CountryGrid from './components/CountryGrid';
 
 import { styled, lighten, darken } from '@mui/system';
 
-import example from './example.json';
 import { groupBy } from 'lodash';
+import { Country } from './api/allCountry';
+import { Skeleton } from '@mui/material';
 
 const GroupHeader = styled('div')(({ theme }) => ({
   position: 'sticky',
@@ -31,97 +33,124 @@ const GroupItems = styled('ul')({
   padding: 0,
 });
 
-const regions = [
-  {
-    id: '-',
-    label: 'Global',
-  },
-].concat(
-  Object.keys(groupBy(example, 'region')).map((region) => ({
-    label: region,
-    id: region,
-  })),
-);
-
 const theme = createTheme();
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+const CountryPlaceholder = Array.from({ length: 20 }, () => null);
+const isCountry = (country: Country[] | null[]): country is Country[] =>
+  country[0] !== null;
+
+const sentinelRegion = { id: '-', label: 'Global' };
 
 const Home = () => {
-  const [currentRegion, setCurrentRegion] = useState(regions[0]);
+  const { data: countries = CountryPlaceholder, error } = useSWR<Country[]>(
+    '/api/allCountry',
+    {
+      fetcher,
+      refreshInterval: 0,
+    },
+  );
 
-  const [countries, setCountries] = useState(example as unknown as Country[]);
+  const isLoading = countries === CountryPlaceholder;
+
   const [search, setSearch] = useState('');
 
+  const regions = useMemo(() => {
+    return [sentinelRegion].concat(
+      Object.keys(groupBy(countries, 'region')).map((region) => ({
+        label: region,
+        id: region,
+      })),
+    );
+  }, [countries]);
+  const [currentRegion, setCurrentRegion] = useState(regions[0]);
+
+  const countriesFilteredByRegion = useMemo(() => {
+    return isCountry(countries)
+      ? countries.filter((country) =>
+          currentRegion.id === '-' ? true : country.region === currentRegion.id,
+        )
+      : [];
+  }, [countries, currentRegion]);
+
   const countriesSortByRegion = useMemo(
-    () => countries.sort((a, b) => a.region.localeCompare(b.region)),
-    [countries],
+    () =>
+      countriesFilteredByRegion.sort((a, b) =>
+        a.region.localeCompare(b.region),
+      ),
+    [countriesFilteredByRegion],
   );
 
   const filteredCountries = useMemo(() => {
-    if (search) {
-      return countries.filter((country) =>
-        country.name.common.toLowerCase().includes(search),
-      );
-    }
-    return countries;
-  }, [countries, search]);
-
-  const countriesWithRegion = useMemo(() => {
-    if (currentRegion.id === '-') {
-      return countries;
-    }
-
-    return countries.filter((country) => country.region === currentRegion.id);
-  }, [currentRegion, countries]);
+    return countriesFilteredByRegion.filter((country) =>
+      country.name.common.toLowerCase().includes(search),
+    );
+  }, [countriesFilteredByRegion, search]);
 
   return (
     <ThemeProvider theme={theme}>
       <Container style={{ padding: 20 }} maxWidth="lg">
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={{ xs: 2 }}
+        <Grid
           justifyContent="space-between"
+          container
+          columns={{ xs: 3, sm: 10, md: 12 }}
+          rowGap={2}
+          sx={{ marginBottom: 8 }}
         >
-          <Autocomplete
-            options={countriesSortByRegion}
-            groupBy={(country) => country.region}
-            getOptionLabel={(country) => country.name.common}
-            sx={{ width: 300 }}
-            renderInput={(params) => (
-              <TextField {...params} label="With Country name" />
+          <Grid item xs={3} sm={4}>
+            {isLoading ? (
+              <Skeleton variant="rounded" height={56} />
+            ) : (
+              <Autocomplete
+                options={countriesSortByRegion}
+                isOptionEqualToValue={(option, value) =>
+                  option.name.common === value.name.common
+                }
+                groupBy={(country) => country.region}
+                getOptionLabel={(country) => country.name.common}
+                renderInput={(params) => (
+                  <TextField {...params} label="With Country name" />
+                )}
+                onChange={(_event, value) => {
+                  if (value) {
+                    setSearch(value.name.common.toLowerCase());
+                  } else {
+                    setSearch('');
+                  }
+                }}
+                renderGroup={(params) => (
+                  <li>
+                    <GroupHeader>{params.group}</GroupHeader>
+                    <GroupItems>{params.children}</GroupItems>
+                  </li>
+                )}
+              />
             )}
-            onChange={(_event, value) => {
-              if (value) {
-                setSearch(value.name.common.toLowerCase());
-              } else {
-                setSearch('');
-              }
-            }}
-            renderGroup={(params) => (
-              <li>
-                <GroupHeader>{params.group}</GroupHeader>
-                <GroupItems>{params.children}</GroupItems>
-              </li>
+          </Grid>
+          <Grid item xs={3} sm={4}>
+            {isLoading ? (
+              <Skeleton variant="rounded" height={56} />
+            ) : (
+              <Autocomplete
+                value={currentRegion}
+                onChange={(_event, newValue) => {
+                  if (newValue?.id) {
+                    setCurrentRegion(newValue);
+                  } else {
+                    setCurrentRegion(sentinelRegion);
+                  }
+                }}
+                disablePortal
+                isOptionEqualToValue={(value, option) => value.id === option.id}
+                options={regions}
+                renderInput={(params) => (
+                  <TextField {...params} label="Filter by Region" />
+                )}
+              />
             )}
-          />
-          <Autocomplete
-            style={{ marginBottom: 40 }}
-            value={currentRegion}
-            onChange={(_event, newValue) => {
-              console.log(newValue);
-              if (newValue?.id) {
-                setCurrentRegion(newValue);
-              }
-            }}
-            disablePortal
-            id="combo-box-demo"
-            options={regions}
-            sx={{ width: 300 }}
-            renderInput={(params) => (
-              <TextField {...params} label="Filter by Region" />
-            )}
-          />
-        </Stack>
-        <CountryGrid countries={countriesWithRegion.slice(20)} />
+          </Grid>
+        </Grid>
+        <CountryGrid countries={filteredCountries} />
       </Container>
     </ThemeProvider>
   );

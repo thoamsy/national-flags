@@ -1,37 +1,12 @@
-import { styled } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
+import Link from 'next/link';
 import Grid from '@mui/material/Grid';
-import TextList from './TextList';
-
-type NativeName = {
-  official: string;
-  common: string;
-};
-
-type Country = {
-  name: NativeName & {
-    nativeName: Record<string, NativeName>;
-  };
-  tld: string[];
-  independent: boolean;
-  // 欧盟
-  unMember: true;
-  currencies: Record<string, { name: string; symbol: string }>;
-  capital: string[];
-  region: string;
-  langauges: Record<string, string>;
-  borders: string[];
-  area: number;
-  flags: Record<string, string>;
-};
-
 import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
+import Skeleton from '@mui/material/Skeleton';
+import Box from '@mui/material/Box';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import type { Country } from '../api/allCountry';
 
 const numberFormat = new Intl.NumberFormat('en-US');
 const listFormat = new Intl.ListFormat('en', {
@@ -66,7 +41,7 @@ const Label = ({
 const CountryCard = ({ region, capital, flags, name }: Country) => {
   const commonName = name.common;
   return (
-    <Card sx={{ maxWidth: 345 }}>
+    <Card>
       <CardMedia
         component="img"
         height="180"
@@ -85,16 +60,37 @@ const CountryCard = ({ region, capital, flags, name }: Country) => {
   );
 };
 
-const CountryGrid = ({ countries }: { countries: Country[] }) => {
+const CountrySkeleton = () => (
+  <Box height={330}>
+    <Skeleton variant="rectangular" height={180} />
+    <Box sx={{ pt: 0.5 }}>
+      <Skeleton variant="text" />
+      <Skeleton variant="text" width="60%" />
+      <Skeleton variant="text" width="60%" />
+      <Skeleton variant="text" width="60%" />
+    </Box>
+  </Box>
+);
+
+const CountryGrid = ({ countries }: { countries: Country[] | null[] }) => {
   return (
     <Grid
       container
       spacing={{ xs: 2, md: 4 }}
       columns={{ xs: 3, sm: 6, md: 12 }}
     >
-      {countries.map((country) => (
-        <Grid key={country.name.common} item xs={3}>
-          {<CountryCard {...country} />}
+      {countries.map((country, index) => (
+        <Grid key={index} item xs={3}>
+          {country == null ? (
+            <CountrySkeleton key={index} />
+          ) : (
+            <Link
+              href={`/detail/${country.name.common}`}
+              key={country.name.common}
+            >
+              <CountryCard {...country} />
+            </Link>
+          )}
         </Grid>
       ))}
     </Grid>
