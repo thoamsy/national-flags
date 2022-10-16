@@ -4,18 +4,19 @@ import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import useSWR from 'swr';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import Skeleton from '@mui/material/Skeleton';
+
 import CountryGrid from './components/CountryGrid';
 
 import { styled, lighten, darken } from '@mui/system';
 
 import { groupBy } from 'lodash';
 import { Country } from './api/allCountry';
-import { Skeleton } from '@mui/material';
 import { useRouter } from 'next/router';
 
 const GroupHeader = styled('div')(({ theme }) => ({
@@ -33,7 +34,6 @@ const GroupItems = styled('ul')({
   padding: 0,
 });
 
-const theme = createTheme();
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 const CountryPlaceholder = Array.from({ length: 20 }, () => null);
@@ -112,7 +112,7 @@ const Home = () => {
   }, [countriesFilteredByRegion, search]);
 
   return (
-    <ThemeProvider theme={theme}>
+    <div>
       <Grid
         justifyContent="space-between"
         container
@@ -152,7 +152,7 @@ const Home = () => {
               }}
               autoHighlight
               renderGroup={(params) => (
-                <li>
+                <li key={params.key}>
                   <GroupHeader>{params.group}</GroupHeader>
                   <GroupItems>{params.children}</GroupItems>
                 </li>
@@ -189,7 +189,7 @@ const Home = () => {
       <CountryGrid
         countries={isLoading ? CountryPlaceholder : filteredCountries}
       />
-    </ThemeProvider>
+    </div>
   );
 };
 

@@ -1,4 +1,5 @@
 import Typography from '@mui/material/Typography';
+import Stack from '@mui/material/Stack';
 
 const numberFormat = new Intl.NumberFormat('en-US');
 const listFormat = new Intl.ListFormat('en', {
@@ -9,9 +10,11 @@ const listFormat = new Intl.ListFormat('en', {
 export const PropertyLabel = ({
   title,
   caption,
+  notPhone = true,
 }: {
   title: string;
   caption: string | number | string[];
+  notPhone?: boolean;
 }) => {
   let desc = caption;
   if (typeof desc === 'number') {
@@ -19,14 +22,27 @@ export const PropertyLabel = ({
   } else if (Array.isArray(desc)) {
     desc = listFormat.format(desc);
   }
+
   return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-      <Typography variant="body2" color="text.primary">
+    <Stack
+      direction="row"
+      columnGap={2}
+      rowGap={1}
+      alignItems="baseline"
+      justifyContent={notPhone ? 'flex-start' : 'space-between'}
+    >
+      <Typography
+        variant={notPhone ? 'body2' : 'subtitle2'}
+        color="text.secondary"
+      >
         {title}
       </Typography>
-      <Typography variant="caption" color="text.secondary">
+      <Typography
+        variant={notPhone ? 'body1' : 'subtitle1'}
+        color="text.primary"
+      >
         {desc}
       </Typography>
-    </div>
+    </Stack>
   );
 };

@@ -7,19 +7,27 @@ import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+
 import { PropertyLabel } from '../components/PropertyLabel';
 import { get } from 'lodash';
 import { styled } from '@mui/material/styles';
 
 const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  backgroundColor:
+    theme.palette.mode === 'dark' ? theme.palette.grey[800] : '#fff',
   ...theme.typography.body2,
   padding: theme.spacing(1),
   textAlign: 'center',
   color: theme.palette.text.secondary,
   cursor: 'pointer',
-  height: 36,
-  width: 88,
+  minHeight: 36,
+  minWidth: 88,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
 }));
 
 const descKeys: Array<
@@ -49,63 +57,83 @@ function Detail({
     query: { name },
     ...rest
   } = useRouter();
-  console.log(rest);
+
+  const theme = useTheme();
+  const notPhone = useMediaQuery(theme.breakpoints.up('sm'));
+
   return (
-    <Stack spacing={4}>
-      <Button
-        style={{ alignSelf: 'flex-start' }}
-        color="inherit"
-        onClick={() => rest.back()}
-        variant="contained"
-      >
-        ⬅️ Back
-      </Button>
-      <Grid container columns={{ xs: 4, sm: 12 }}>
-        <Grid item sm={5}>
-          <Image
-            width={960}
-            height={720}
-            src={country.flags.svg}
-            alt={`flags of ${country.name.common}`}
-          />
-        </Grid>
-        <Grid item sm={1} zeroMinWidth />
-        <Grid item sm={6}>
-          <Stack>
-            <Typography variant="h4" fontWeight={600}>
-              {country.name.common}
-            </Typography>
-            <Stack>
-              {descKeys.map(([title, renderCaption]) => (
-                <PropertyLabel
-                  key={title}
-                  caption={
-                    typeof renderCaption === 'function'
-                      ? renderCaption(country)
-                      : get(country, renderCaption)
-                  }
-                  title={title}
-                />
-              ))}
-            </Stack>
-            <Stack direction="row" columnGap={2} alignItems="center">
-              <Typography variant="body2" color="text.primary">
-                Border Countries
+    <>
+      <Stack spacing={notPhone ? 20 : 4}>
+        <Button
+          style={{ alignSelf: 'flex-start' }}
+          onClick={() => rest.back()}
+          variant="outlined"
+          startIcon={<ChevronLeftIcon />}
+        >
+          Back
+        </Button>
+        <Grid container columns={{ xs: 4, sm: 12 }}>
+          <Grid item sm={5}>
+            <Image
+              width={960}
+              height={720}
+              src={country.flags.svg}
+              alt={`flags of ${name}`}
+            />
+          </Grid>
+          <Grid item sm={1} zeroMinWidth />
+          <Grid item sm={6}>
+            <Stack justifyContent="space-around" style={{ height: '100%' }}>
+              <Typography variant="h4" fontWeight={600}>
+                {name}
               </Typography>
-              <Stack spacing={1} direction="row">
-                {countriesOfBorders.map((country) => (
-                  <Link key={country.name} href={`/detail/${country.name}`}>
-                    <Item>
-                      {country.flag} {country.name}
-                    </Item>
-                  </Link>
+              <Grid container columns={{ xs: 6, sm: 12 }}>
+                {descKeys.map(([title, renderCaption], index) => (
+                  <Grid
+                    style={{
+                      background:
+                        !notPhone && index % 2 === 1
+                          ? theme.palette.divider
+                          : undefined,
+                    }}
+                    item
+                    xs={6}
+                    key={title}
+                  >
+                    <PropertyLabel
+                      notPhone={notPhone}
+                      caption={
+                        typeof renderCaption === 'function'
+                          ? renderCaption(country)
+                          : get(country, renderCaption)
+                      }
+                      title={title}
+                    />
+                  </Grid>
                 ))}
+              </Grid>
+              <Stack direction="row" columnGap={2} alignItems="center">
+                <Typography
+                  variant={notPhone ? 'body2' : 'subtitle2'}
+                  color="text.secondary"
+                >
+                  Border Countries
+                </Typography>
+                <Stack spacing={1} direction="row">
+                  {countriesOfBorders.map((country) => (
+                    <Link key={country.name} href={`/detail/${country.name}`}>
+                      <Item>
+                        {country.flag} {country.name}
+                      </Item>
+                    </Link>
+                  ))}
+                </Stack>
               </Stack>
             </Stack>
-          </Stack>
+          </Grid>
         </Grid>
-      </Grid>
-    </Stack>
+      </Stack>
+    </>
   );
 }
 

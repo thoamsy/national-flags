@@ -25,6 +25,8 @@ export type Country = {
   borders: string[];
   area: number;
   flags: Record<string, string>;
+  flag: string;
+  population: number;
 };
 
 export default async function handler(

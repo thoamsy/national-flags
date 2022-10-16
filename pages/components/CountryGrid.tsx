@@ -6,10 +6,20 @@ import Box from '@mui/material/Box';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+
 import { PropertyLabel } from './PropertyLabel';
 import type { Country } from '../api/allCountry';
 
-const CountryCard = ({ region, capital, flags, name }: Country) => {
+const CountryCard = ({
+  region,
+  capital,
+  flags,
+  name,
+  population,
+  isPhone,
+}: Country & { isPhone?: boolean }) => {
   const commonName = name.common;
   return (
     <Card
@@ -24,12 +34,26 @@ const CountryCard = ({ region, capital, flags, name }: Country) => {
         alt={`${commonName}'s flag`}
       />
       <CardContent style={{ height: 150 }}>
-        <Typography gutterBottom variant="h6">
+        <Typography
+          style={{
+            overflow: 'hidden',
+            width: '100%',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+          gutterBottom
+          fontWeight={700}
+          variant={commonName.length <= 20 ? (isPhone ? 'h5' : 'h6') : 'body2'}
+        >
           {commonName}
         </Typography>
-        <PropertyLabel title="Population" caption={100000} />
-        <PropertyLabel title="Region" caption={region} />
-        <PropertyLabel title="Capital" caption={capital} />
+        <PropertyLabel notPhone={false} title="Region" caption={region} />
+        <PropertyLabel notPhone={false} title="Capital" caption={capital} />
+        <PropertyLabel
+          notPhone={false}
+          title="Population"
+          caption={population}
+        />
       </CardContent>
     </Card>
   );
@@ -48,6 +72,9 @@ const CountrySkeleton = () => (
 );
 
 const CountryGrid = ({ countries }: { countries: Country[] | null[] }) => {
+  const theme = useTheme();
+  const notPhone = useMediaQuery(theme.breakpoints.up('sm'));
+
   return (
     <Grid
       container
@@ -64,8 +91,8 @@ const CountryGrid = ({ countries }: { countries: Country[] | null[] }) => {
             href={`/detail/${country.name.common}`}
             key={country.name.common}
           >
-            <Grid key={index} item xs={3}>
-              <CountryCard {...country} />
+            <Grid key={country.name.common} item xs={3}>
+              <CountryCard isPhone={!notPhone} {...country} />
             </Grid>
           </Link>
         ),
