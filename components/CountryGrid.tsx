@@ -27,7 +27,6 @@ const CountryCard = ({
         cursor: 'pointer',
       }}
       onClick={() => {
-        console.log(window.scrollY);
         return localStorage.setItem('scrollposition', '' + window.scrollY);
       }}
     >

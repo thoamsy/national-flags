@@ -112,7 +112,6 @@ function Detail() {
     setBorders([]);
     hadFetchedBorder.current = false;
   }, [name]);
-  console.log('borders: ', countriesOfBorders);
 
   return (
     <>

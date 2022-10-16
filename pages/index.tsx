@@ -107,7 +107,6 @@ const Home = () => {
   }, [countriesFilteredByRegion, search]);
 
   useEffect(() => {
-    console.log(isLoading);
     if (isLoading) {
       return;
     }

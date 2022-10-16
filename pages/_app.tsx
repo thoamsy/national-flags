@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { AppProps } from 'next/app';
+import Head from 'next/head';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import '@fontsource/roboto/300.css';
@@ -50,6 +51,17 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <ColorModeContext.Provider value={colorMode}>
+      <Head>
+        <title>National flags</title>
+        <meta
+          name="theme-color"
+          content={
+            mode === 'light'
+              ? theme.palette.primary.main
+              : theme.palette.grey[900]
+          }
+        />
+      </Head>
       <ThemeProvider theme={theme}>
         <Navbar />
         <Paper
