@@ -1,8 +1,9 @@
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Link from 'next/link';
-import type { NextApiRequest, NextApiResponse } from 'next';
 import Stack from '@mui/material/Stack';
+import Skeleton from '@mui/material/Skeleton';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -10,10 +11,12 @@ import Paper from '@mui/material/Paper';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { styled } from '@mui/material/styles';
+
+import useSWR from 'swr';
 
 import { PropertyLabel } from '../components/PropertyLabel';
 import { get } from 'lodash';
-import { styled } from '@mui/material/styles';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor:
@@ -46,20 +49,61 @@ const descKeys: Array<
   ['Languages', (country) => Object.values(country.languages)],
 ];
 
-function Detail({
-  country,
-  countriesOfBorders = [],
-}: {
-  country: Country;
-  countriesOfBorders: { name: string; flag: string }[];
-}) {
+function Detail() {
   const {
     query: { name },
     ...rest
   } = useRouter();
 
+  console.log(name, 'name');
+
   const theme = useTheme();
   const notPhone = useMediaQuery(theme.breakpoints.up('sm'));
+
+  const [countriesOfBorders, setBorders] = useState<
+    { name: string; flag: string }[]
+  >([]);
+
+  const { data: country } = useSWR(`/api/${name}`, {
+    async fetcher() {
+      if (!name) {
+        return null;
+      }
+
+      const country = (
+        await fetch(`https://restcountries.com/v3.1/name/${name}`).then((r) =>
+          r.json(),
+        )
+      )[0];
+
+      return country;
+    },
+    refreshWhenHidden: false,
+    async onSuccess(country) {
+      const { borders = [] } = country;
+      if (!borders.length) {
+        return;
+      }
+      const searchCodeEntry = `https://restcountries.com/v3.1/alpha?codes=${borders.join(
+        ',',
+      )}`;
+
+      const countriesOfBorders = await fetch(searchCodeEntry)
+        .then((r) => r.json())
+        .then((countriesOfBorders) => {
+          return countriesOfBorders.map((country: Country) => ({
+            name: country.name.common,
+            flag: country.flag,
+          }));
+        });
+      setBorders(countriesOfBorders);
+    },
+  });
+
+  useEffect(() => {
+    setBorders([]);
+  }, [name]);
+  console.log('borders: ', countriesOfBorders);
 
   return (
     <>
@@ -73,17 +117,24 @@ function Detail({
           Back
         </Button>
         <Grid container columns={{ xs: 4, sm: 12 }}>
-          <Grid item sm={5}>
-            <Image
-              width={960}
-              height={720}
-              src={country.flags.svg}
-              alt={`flags of ${name}`}
-            />
+          <Grid item xs={4} sm={5}>
+            {country ? (
+              <Image
+                objectFit="contain"
+                width={640}
+                height={480}
+                layout="responsive"
+                style={{ border: '1px solid #ccc' }}
+                src={country?.flags?.svg ?? ''}
+                alt={`flags of ${name}`}
+              />
+            ) : (
+              <Skeleton width="100%" height={320} variant="rectangular" />
+            )}
           </Grid>
-          <Grid item sm={1} zeroMinWidth />
-          <Grid item sm={6}>
-            <Stack justifyContent="space-around" style={{ height: '100%' }}>
+          <Grid item xs={0} sm={1} zeroMinWidth />
+          <Grid item xs={4} sm={6}>
+            <Stack spacing={2} style={{ height: '100%' }}>
               <Typography variant="h4" fontWeight={600}>
                 {name}
               </Typography>
@@ -103,31 +154,43 @@ function Detail({
                     <PropertyLabel
                       notPhone={notPhone}
                       caption={
-                        typeof renderCaption === 'function'
-                          ? renderCaption(country)
-                          : get(country, renderCaption)
+                        country
+                          ? typeof renderCaption === 'function'
+                            ? renderCaption(country)
+                            : get(country, renderCaption)
+                          : '--'
                       }
                       title={title}
                     />
                   </Grid>
                 ))}
               </Grid>
-              <Stack direction="row" columnGap={2} alignItems="center">
+              <Stack
+                rowGap={1}
+                direction="row"
+                columnGap={2}
+                alignItems="center"
+                style={{ flexGrow: 1 }}
+              >
                 <Typography
                   variant={notPhone ? 'body2' : 'subtitle2'}
                   color="text.secondary"
                 >
                   Border Countries
                 </Typography>
-                <Stack spacing={1} direction="row">
-                  {countriesOfBorders.map((country) => (
-                    <Link key={country.name} href={`/detail/${country.name}`}>
-                      <Item>
-                        {country.flag} {country.name}
-                      </Item>
-                    </Link>
-                  ))}
-                </Stack>
+                <Grid container spacing={1}>
+                  {country?.borders?.length && countriesOfBorders.length > 0
+                    ? countriesOfBorders.map((country) => (
+                        <Grid xs={6} sm={4} item key={country.name}>
+                          <Link href={`/detail/${country.name}`}>
+                            <Item>
+                              {country.flag} {country.name}
+                            </Item>
+                          </Link>
+                        </Grid>
+                      ))
+                    : 'Fetching…'}
+                </Grid>
               </Stack>
             </Stack>
           </Grid>
@@ -138,41 +201,3 @@ function Detail({
 }
 
 export default Detail;
-
-export async function getServerSideProps({
-  req,
-  res,
-}: {
-  req: NextApiRequest;
-  res: NextApiResponse;
-}) {
-  const oneDay = 3600 * 24;
-  res.setHeader('Cache-Control', `public, s-maxage=${oneDay}`);
-
-  const country = (
-    await fetch(
-      `https://restcountries.com/v3.1/name/${req.url?.split('/')[2]}`,
-    ).then((r) => r.json())
-  )[0];
-
-  const { borders = [] } = country;
-  const searchCodeEntry = `https://restcountries.com/v3.1/alpha?codes=${borders.join(
-    ',',
-  )}`;
-
-  const countriesOfBorders = await fetch(searchCodeEntry)
-    .then((r) => r.json())
-    .then((countriesOfBorders) => {
-      return countriesOfBorders.map((country: Country) => ({
-        name: country.name.common,
-        flag: country.flag,
-      }));
-    });
-
-  return {
-    props: {
-      country,
-      countriesOfBorders,
-    },
-  };
-}

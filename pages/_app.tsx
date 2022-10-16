@@ -11,17 +11,16 @@ import { useMediaQuery } from '@mui/material';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const isDark = useMediaQuery('(prefers-color-scheme: dark)');
-  console.log(isDark);
 
   const [mode, setMode] = useState<'light' | 'dark'>(() => {
     const systemMode = isDark ? 'dark' : 'light';
-    const color =
-      typeof localStorage !== 'undefined'
-        ? localStorage.getItem('colormode')
-        : systemMode;
-    if (color) {
-      return color;
-    }
+    // const color =
+    //   typeof localStorage !== 'undefined'
+    //     ? localStorage.getItem('colormode')
+    //     : systemMode;
+    // if (color) {
+    //   return color;
+    // }
     return systemMode;
   });
 

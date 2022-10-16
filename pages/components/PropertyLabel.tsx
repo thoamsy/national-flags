@@ -34,6 +34,7 @@ export const PropertyLabel = ({
       <Typography
         variant={notPhone ? 'body2' : 'subtitle2'}
         color="text.secondary"
+        style={{ flexShrink: 0 }}
       >
         {title}
       </Typography>
