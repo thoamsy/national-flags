@@ -26,11 +26,16 @@ const CountryCard = ({
       style={{
         cursor: 'pointer',
       }}
+      onClick={() => {
+        console.log(window.scrollY);
+        return localStorage.setItem('scrollposition', '' + window.scrollY);
+      }}
     >
       <CardMedia
         component="img"
         height="180"
         image={flags.png}
+        loading="lazy"
         alt={`${commonName}'s flag`}
       />
       <CardContent style={{ height: 150 }}>

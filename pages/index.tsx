@@ -1,14 +1,9 @@
-import { useState, useMemo } from 'react';
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
+import { useState, useMemo, useEffect } from 'react';
 
 import useSWR from 'swr';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
 
 import CountryGrid from './components/CountryGrid';
@@ -110,6 +105,18 @@ const Home = () => {
       search.map((item) => item.name).includes(country.name.common),
     );
   }, [countriesFilteredByRegion, search]);
+
+  useEffect(() => {
+    console.log(isLoading);
+    if (isLoading) {
+      return;
+    }
+    const y = Number(localStorage.getItem('scrollposition'));
+    if (y) {
+      window.scrollTo(0, y);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div>

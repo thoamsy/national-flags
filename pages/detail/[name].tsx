@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -38,14 +38,18 @@ const descKeys: Array<
 > = [
   [
     'Native Name',
-    (country) => Object.values(country.name.nativeName)[0].official,
+    (country) => Object.values(country.name.nativeName)?.[0]?.official,
   ],
   ['Population', 'population'],
   ['Region', 'region'],
   ['Sub Region', 'subregion'],
   ['Capital', (country) => country.capital],
   ['Top Level Domain', (country) => country.tld],
-  ['Currencies', (country) => Object.values(country.currencies)[0].name],
+  [
+    'Currencies',
+    (country) =>
+      Object.values(country.currencies || {})?.[0]?.name ?? 'not exist',
+  ],
   ['Languages', (country) => Object.values(country.languages)],
 ];
 
@@ -55,10 +59,9 @@ function Detail() {
     ...rest
   } = useRouter();
 
-  console.log(name, 'name');
-
   const theme = useTheme();
   const notPhone = useMediaQuery(theme.breakpoints.up('sm'));
+  const hadFetchedBorder = useRef(false);
 
   const [countriesOfBorders, setBorders] = useState<
     { name: string; flag: string }[]
@@ -80,8 +83,9 @@ function Detail() {
     },
     refreshWhenHidden: false,
     async onSuccess(country) {
-      const { borders = [] } = country;
+      const { borders = [] } = country || {};
       if (!borders.length) {
+        hadFetchedBorder.current = true;
         return;
       }
       const searchCodeEntry = `https://restcountries.com/v3.1/alpha?codes=${borders.join(
@@ -95,6 +99,9 @@ function Detail() {
             name: country.name.common,
             flag: country.flag,
           }));
+        })
+        .finally(() => {
+          hadFetchedBorder.current = true;
         });
       setBorders(countriesOfBorders);
     },
@@ -102,6 +109,7 @@ function Detail() {
 
   useEffect(() => {
     setBorders([]);
+    hadFetchedBorder.current = false;
   }, [name]);
   console.log('borders: ', countriesOfBorders);
 
@@ -179,7 +187,9 @@ function Detail() {
                   Border Countries
                 </Typography>
                 <Grid container spacing={1}>
-                  {country?.borders?.length && countriesOfBorders.length > 0
+                  {!hadFetchedBorder.current
+                    ? 'Fetching…'
+                    : countriesOfBorders.length > 0
                     ? countriesOfBorders.map((country) => (
                         <Grid xs={6} sm={4} item key={country.name}>
                           <Link href={`/detail/${country.name}`}>
@@ -189,7 +199,7 @@ function Detail() {
                           </Link>
                         </Grid>
                       ))
-                    : 'Fetching…'}
+                    : 'empty'}
                 </Grid>
               </Stack>
             </Stack>

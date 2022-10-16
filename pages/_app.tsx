@@ -1,7 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import Navbar from './components/Navbar';
@@ -12,17 +16,14 @@ import { useMediaQuery } from '@mui/material';
 function MyApp({ Component, pageProps }: AppProps) {
   const isDark = useMediaQuery('(prefers-color-scheme: dark)');
 
-  const [mode, setMode] = useState<'light' | 'dark'>(() => {
-    const systemMode = isDark ? 'dark' : 'light';
-    // const color =
-    //   typeof localStorage !== 'undefined'
-    //     ? localStorage.getItem('colormode')
-    //     : systemMode;
-    // if (color) {
-    //   return color;
-    // }
-    return systemMode;
-  });
+  const [mode, setMode] = useState<'light' | 'dark'>(isDark ? 'dark' : 'light');
+
+  useEffect(() => {
+    const color = localStorage.getItem('colormode') as 'light' | 'dark';
+    if (color) {
+      setMode(color);
+    }
+  }, []);
 
   const colorMode = useMemo(
     () => ({
