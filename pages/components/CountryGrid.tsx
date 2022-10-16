@@ -6,38 +6,9 @@ import Box from '@mui/material/Box';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
 import Typography from '@mui/material/Typography';
+import { PropertyLabel } from './PropertyLabel';
 import type { Country } from '../api/allCountry';
 
-const numberFormat = new Intl.NumberFormat('en-US');
-const listFormat = new Intl.ListFormat('en', {
-  style: 'long',
-  type: 'conjunction',
-});
-
-const Label = ({
-  title,
-  caption,
-}: {
-  title: string;
-  caption: string | number | string[];
-}) => {
-  let desc = caption;
-  if (typeof desc === 'number') {
-    desc = numberFormat.format(desc);
-  } else if (Array.isArray(desc)) {
-    desc = listFormat.format(desc);
-  }
-  return (
-    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-      <Typography variant="body2" color="text.primary">
-        {title}
-      </Typography>
-      <Typography variant="caption" color="text.secondary">
-        {desc}
-      </Typography>
-    </div>
-  );
-};
 const CountryCard = ({ region, capital, flags, name }: Country) => {
   const commonName = name.common;
   return (
@@ -56,9 +27,9 @@ const CountryCard = ({ region, capital, flags, name }: Country) => {
         <Typography gutterBottom variant="h6">
           {commonName}
         </Typography>
-        <Label title="Population" caption={100000} />
-        <Label title="Region" caption={region} />
-        <Label title="Capital" caption={capital} />
+        <PropertyLabel title="Population" caption={100000} />
+        <PropertyLabel title="Region" caption={region} />
+        <PropertyLabel title="Capital" caption={capital} />
       </CardContent>
     </Card>
   );

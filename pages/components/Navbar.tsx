@@ -6,7 +6,7 @@ export default function Navbar() {
   return (
     <AppBar color="transparent" position="relative" enableColorOnDark>
       <Toolbar>
-        <Typography variant="h6" component="div">
+        <Typography variant="h5" fontWeight={700} component="h4">
           Where in the world
         </Typography>
       </Toolbar>

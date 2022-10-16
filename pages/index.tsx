@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
@@ -8,7 +8,6 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import useSWR from 'swr';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
-import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import CountryGrid from './components/CountryGrid';
 
@@ -65,7 +64,6 @@ const Home = () => {
       .filter(Boolean)
       .map((keyword) => ({ name: keyword, region: '' }));
   });
-  console.log(search);
 
   const regions = useMemo(() => {
     return [sentinelRegion].concat(
@@ -115,79 +113,82 @@ const Home = () => {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container style={{ padding: 20 }} maxWidth="lg">
-        <Grid
-          justifyContent="space-between"
-          container
-          columns={{ xs: 3, sm: 10, md: 12 }}
-          rowGap={2}
-          sx={{ marginBottom: 8 }}
-        >
-          <Grid item xs={3} sm={4}>
-            {isLoading ? (
-              <Skeleton variant="rounded" height={56} />
-            ) : (
-              <Autocomplete
-                options={countriesSortByRegion}
-                isOptionEqualToValue={(option, value) =>
-                  option.name === value.name
+      <Grid
+        justifyContent="space-between"
+        container
+        columns={{ xs: 3, sm: 10, md: 12 }}
+        rowGap={2}
+        sx={{ marginBottom: 8 }}
+      >
+        <Grid item xs={3} sm={4}>
+          {isLoading ? (
+            <Skeleton variant="rounded" height={56} />
+          ) : (
+            <Autocomplete
+              options={countriesSortByRegion}
+              isOptionEqualToValue={(option, value) =>
+                option.name === value.name
+              }
+              groupBy={(country) => country.region}
+              getOptionLabel={(country) => country.name}
+              renderInput={(params) => (
+                <TextField {...params} label="With Country name" />
+              )}
+              multiple
+              value={search}
+              onChange={(_event, value) => {
+                setSearch(value);
+
+                const newUrl = new URL(location.href);
+
+                const s = value.map((item) => item.name).join(',');
+
+                if (s) {
+                  newUrl.searchParams.set('s', s);
+                } else {
+                  newUrl.searchParams.delete('s');
                 }
-                groupBy={(country) => country.region}
-                getOptionLabel={(country) => country.name}
-                renderInput={(params) => (
-                  <TextField {...params} label="With Country name" />
-                )}
-                multiple
-                value={search}
-                onChange={(_event, value) => {
-                  setSearch(value);
-
-                  const newUrl = new URL(location.href);
-                  newUrl.searchParams.set(
-                    's',
-                    value.map((item) => item.name).join(','),
-                  );
-                  replace(newUrl.toString());
-                }}
-                renderGroup={(params) => (
-                  <li>
-                    <GroupHeader>{params.group}</GroupHeader>
-                    <GroupItems>{params.children}</GroupItems>
-                  </li>
-                )}
-              />
-            )}
-          </Grid>
-          <Grid item xs={3} sm={4}>
-            {isLoading ? (
-              <Skeleton variant="rounded" height={56} />
-            ) : (
-              <Autocomplete
-                value={currentRegion}
-                onChange={(_event, newValue) => {
-                  setCurrentRegion(newValue ?? sentinelRegion);
-
-                  const newUrl = new URL(location.href);
-                  newUrl.searchParams.set(
-                    'region',
-                    (newValue?.id as string) ?? '',
-                  );
-                  replace(newUrl.toString());
-                }}
-                disablePortal
-                isOptionEqualToValue={(value, option) => value.id === option.id}
-                options={regions}
-                renderInput={(params) => (
-                  <TextField {...params} label="Filter by Region" />
-                )}
-              />
-            )}
-          </Grid>
+                replace(newUrl.toString());
+              }}
+              autoHighlight
+              renderGroup={(params) => (
+                <li>
+                  <GroupHeader>{params.group}</GroupHeader>
+                  <GroupItems>{params.children}</GroupItems>
+                </li>
+              )}
+            />
+          )}
         </Grid>
-        <CountryGrid
-          countries={isLoading ? CountryPlaceholder : filteredCountries}
-        />
-      </Container>
+        <Grid item xs={3} sm={4}>
+          {isLoading ? (
+            <Skeleton variant="rounded" height={56} />
+          ) : (
+            <Autocomplete
+              value={currentRegion}
+              onChange={(_event, newValue) => {
+                setCurrentRegion(newValue ?? sentinelRegion);
+
+                const newUrl = new URL(location.href);
+                newUrl.searchParams.set(
+                  'region',
+                  (newValue?.id as string) ?? '',
+                );
+                replace(newUrl.toString());
+              }}
+              disablePortal
+              isOptionEqualToValue={(value, option) => value.id === option.id}
+              options={regions}
+              renderInput={(params) => (
+                <TextField {...params} label="Filter by Region" />
+              )}
+            />
+          )}
+        </Grid>
+      </Grid>
+      <CountryGrid
+        countries={isLoading ? CountryPlaceholder : filteredCountries}
+      />
     </ThemeProvider>
   );
 };

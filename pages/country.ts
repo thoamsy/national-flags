@@ -14,8 +14,9 @@ type Country = {
   currencies: Record<string, { name: string; symbol: string }>;
   capital: string[];
   region: string;
-  langauges: Record<string, string>;
+  languages: Record<string, string>;
   borders: string[];
   area: number;
   flags: Record<string, string>;
+  flag: string;
 };

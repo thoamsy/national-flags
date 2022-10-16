@@ -9,6 +9,5 @@ export default async function handler(
   const country = await fetch(
     `https://restcountries.com/v3.1/name/${req.query.name}`,
   ).then((res) => res.json());
-  console.log(country);
   res.status(200).json(country);
 }
