@@ -9,8 +9,8 @@ import Typography from '@mui/material/Typography';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
-import { PropertyLabel } from './PropertyLabel';
-import type { Country } from '../api/allCountry';
+import PropertyLabel from './PropertyLabel';
+import type { Country } from '../pages/api/allCountry';
 
 const CountryCard = ({
   region,

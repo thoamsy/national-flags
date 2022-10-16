@@ -7,7 +7,7 @@ const listFormat = new Intl.ListFormat('en', {
   type: 'conjunction',
 });
 
-export const PropertyLabel = ({
+const PropertyLabel = ({
   title,
   caption,
   notPhone = true,
@@ -47,3 +47,5 @@ export const PropertyLabel = ({
     </Stack>
   );
 };
+
+export default PropertyLabel;

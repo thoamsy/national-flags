@@ -13,10 +13,11 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { styled } from '@mui/material/styles';
 
+import { get } from 'lodash';
 import useSWR from 'swr';
 
-import { PropertyLabel } from '../components/PropertyLabel';
-import { get } from 'lodash';
+import PropertyLabel from '../../components/PropertyLabel';
+import type { Country } from '../api/allCountry';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor:

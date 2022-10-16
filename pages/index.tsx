@@ -6,7 +6,7 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 
-import CountryGrid from './components/CountryGrid';
+import CountryGrid from '../components/CountryGrid';
 
 import { styled, lighten, darken } from '@mui/system';
 

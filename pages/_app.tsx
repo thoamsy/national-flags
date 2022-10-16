@@ -8,9 +8,9 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-import Navbar from './components/Navbar';
+import Navbar from '../components/Navbar';
 import '../styles/globals.css';
-import { ColorModeContext } from './useColorMode';
+import ColorModeContext from '../libs/useColorMode';
 import { useMediaQuery } from '@mui/material';
 
 function MyApp({ Component, pageProps }: AppProps) {
