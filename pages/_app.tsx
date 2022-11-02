@@ -1,18 +1,19 @@
 import { useState, useMemo, useEffect } from 'react';
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
-import Container from '@mui/material/Container';
-import Paper from '@mui/material/Paper';
+
 import '@fontsource/roboto/300.css';
 import '@fontsource/roboto/400.css';
 import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
+
+import { Container, Paper } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useMediaQuery } from '@mui/material';
 
 import Navbar from '../components/Navbar';
 import '../styles/globals.css';
 import ColorModeContext from '../libs/useColorMode';
-import { useMediaQuery } from '@mui/material';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const isDark = useMediaQuery('(prefers-color-scheme: dark)');

@@ -1,5 +1,4 @@
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
+import { Typography, Stack } from '@mui/material';
 
 const numberFormat = new Intl.NumberFormat('en-US');
 const listFormat = new Intl.ListFormat('en', {
