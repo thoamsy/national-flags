@@ -1,20 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/router';
-import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/legacy/image';
 import Link from 'next/link';
-import Stack from '@mui/material/Stack';
-import Skeleton from '@mui/material/Skeleton';
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
-import { useTheme } from '@mui/material/styles';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { styled } from '@mui/material/styles';
 
 import { get } from 'lodash';
 import useSWR from 'swr';
+
+import {
+  Stack,
+  Skeleton,
+  Grid,
+  Button,
+  Typography,
+  Paper,
+} from '@mui/material';
+
+import { useTheme, styled } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 import PropertyLabel from '../../components/PropertyLabel';
 import type { Country } from '../api/allCountry';
@@ -55,10 +58,9 @@ const descKeys: Array<
 ];
 
 function Detail() {
-  const {
-    query: { name },
-    ...rest
-  } = useRouter();
+  const { back } = useRouter();
+  const searchParams = useSearchParams();
+  const name = searchParams.get('name') as string;
 
   const theme = useTheme();
   const notPhone = useMediaQuery(theme.breakpoints.up('sm'));
@@ -118,7 +120,7 @@ function Detail() {
       <Stack spacing={notPhone ? 20 : 4}>
         <Button
           style={{ alignSelf: 'flex-start' }}
-          onClick={() => rest.back()}
+          onClick={back}
           variant="outlined"
           startIcon={<ChevronLeftIcon />}
         >

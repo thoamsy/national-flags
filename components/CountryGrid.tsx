@@ -1,11 +1,13 @@
 import Link from 'next/link';
-import Grid from '@mui/material/Grid';
-import Card from '@mui/material/Card';
-import Skeleton from '@mui/material/Skeleton';
-import Box from '@mui/material/Box';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Typography from '@mui/material/Typography';
+import {
+  Grid,
+  Card,
+  Skeleton,
+  Box,
+  CardContent,
+  CardMedia,
+  Typography,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
@@ -91,14 +93,11 @@ const CountryGrid = ({ countries }: { countries: Country[] | null[] }) => {
             <CountrySkeleton key={index} />
           </Grid>
         ) : (
-          <Link
-            href={`/detail/${country.name.common}`}
-            key={country.name.common}
-          >
-            <Grid key={country.name.common} item xs={3}>
+          <Grid key={country.name.common} item xs={3}>
+            <Link href={`/detail/${country.name.common}`}>
               <CountryCard isPhone={!notPhone} {...country} />
-            </Grid>
-          </Link>
+            </Link>
+          </Grid>
         ),
       )}
     </Grid>

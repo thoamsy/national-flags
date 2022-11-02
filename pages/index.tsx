@@ -1,18 +1,13 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/router';
 
 import useSWR from 'swr';
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
-import Grid from '@mui/material/Grid';
-import Skeleton from '@mui/material/Skeleton';
+import { styled, lighten, darken } from '@mui/system';
 
 import CountryGrid from '../components/CountryGrid';
 
-import { styled, lighten, darken } from '@mui/system';
-
-import { groupBy } from 'lodash';
 import { Country } from './api/allCountry';
-import { useRouter } from 'next/router';
+import Header, { Region } from './header';
 
 const GroupHeader = styled('div')(({ theme }) => ({
   position: 'sticky',
@@ -38,7 +33,7 @@ const isCountry = (country: Country[] | null[]): country is Country[] =>
 const sentinelRegion = { id: '-', label: 'Global' };
 
 const Home = () => {
-  const { query, replace } = useRouter();
+  const { query } = useRouter();
 
   const { data: countries = CountryPlaceholder, error } = useSWR<Country[]>(
     '/api/allCountry',
@@ -51,26 +46,18 @@ const Home = () => {
   const isLoading = countries === CountryPlaceholder;
 
   const [search, setSearch] = useState(() => {
-    if (typeof query.s !== 'string') {
+    const s = query.s;
+    if (typeof s !== 'string') {
       return [];
     }
-    return query.s
+    return s
       .split(',')
       .filter(Boolean)
       .map((keyword) => ({ name: keyword, region: '' }));
   });
 
-  const regions = useMemo(() => {
-    return [sentinelRegion].concat(
-      Object.keys(groupBy(countries, 'region')).map((region) => ({
-        label: region,
-        id: region,
-      })),
-    );
-  }, [countries]);
-
-  const [currentRegion, setCurrentRegion] = useState(() => {
-    const region = query.region;
+  const [currentRegion, setCurrentRegion] = useState<Region>(() => {
+    const { region } = query;
     if (region) {
       return { id: region, label: region };
     }
@@ -118,84 +105,20 @@ const Home = () => {
   }, []);
 
   return (
-    <div>
-      <Grid
-        justifyContent="space-between"
-        container
-        columns={{ xs: 3, sm: 10, md: 12 }}
-        rowGap={2}
-        sx={{ marginBottom: 8 }}
-      >
-        <Grid item xs={3} sm={4}>
-          {isLoading ? (
-            <Skeleton variant="rounded" height={56} />
-          ) : (
-            <Autocomplete
-              options={countriesSortByRegion}
-              isOptionEqualToValue={(option, value) =>
-                option.name === value.name
-              }
-              groupBy={(country) => country.region}
-              getOptionLabel={(country) => country.name}
-              renderInput={(params) => (
-                <TextField {...params} label="With Country name" />
-              )}
-              multiple
-              value={search}
-              onChange={(_event, value) => {
-                setSearch(value);
-
-                const newUrl = new URL(location.href);
-
-                const s = value.map((item) => item.name).join(',');
-
-                if (s) {
-                  newUrl.searchParams.set('s', s);
-                } else {
-                  newUrl.searchParams.delete('s');
-                }
-                replace(newUrl.toString());
-              }}
-              autoHighlight
-              renderGroup={(params) => (
-                <li key={params.key}>
-                  <GroupHeader>{params.group}</GroupHeader>
-                  <GroupItems>{params.children}</GroupItems>
-                </li>
-              )}
-            />
-          )}
-        </Grid>
-        <Grid item xs={3} sm={4}>
-          {isLoading ? (
-            <Skeleton variant="rounded" height={56} />
-          ) : (
-            <Autocomplete
-              value={currentRegion}
-              onChange={(_event, newValue) => {
-                setCurrentRegion(newValue ?? sentinelRegion);
-
-                const newUrl = new URL(location.href);
-                newUrl.searchParams.set(
-                  'region',
-                  (newValue?.id as string) ?? '',
-                );
-                replace(newUrl.toString());
-              }}
-              disablePortal
-              isOptionEqualToValue={(value, option) => value.id === option.id}
-              options={regions}
-              renderInput={(params) => (
-                <TextField {...params} label="Filter by Region" />
-              )}
-            />
-          )}
-        </Grid>
-      </Grid>
+    <>
+      <Header
+        search={search}
+        setSearch={setSearch}
+        isLoading={isLoading}
+        countries={countries}
+        countriesSortByRegion={countriesSortByRegion}
+        currentRegion={currentRegion}
+        setCurrentRegion={setCurrentRegion}
+      />
       <CountryGrid
         countries={isLoading ? CountryPlaceholder : filteredCountries}
       />
-    </div>
+    </>
   );
 };
 
